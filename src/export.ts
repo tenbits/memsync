@@ -1,0 +1,1 @@
+export { MemShare } from './MemShare'

@@ -1,0 +1,94 @@
+{
+    "name": "memshare",
+    "version": "0.5.8",
+    "main": "./lib/memshare.js",
+    "author": {
+        "name": "Alex Kit",
+        "email": "alex.kit@atmajs.com"
+    },
+    "dependencies": {
+        "@types/node-ipc": "^9.1.3",
+        "alot": "^0.2.83",
+        "atma-io": "^1.2.26",
+        "atma-utils": "^0.1.38",
+        "memd": "^0.2.90",
+        "node-ipc": "^9.1.3",
+        "shellbee": "^0.5.12",
+        "tree-kill": "^1.2.2"
+    },
+    "devDependencies": {
+        "@types/node": "^12.6.2",
+        "app-bundler": "0.0.70",
+        "atma": "^0.12.18",
+        "atma-loader-ts": "^1.1.12",
+        "dts-bundle": "^0.7.3"
+    },
+    "scripts": {
+        "build": "app-bundler && npm run dts",
+        "dts": "tsc -p tsconfig-build.json && atma run tools/build-dts",
+        "watch": "app-bundler -watch",
+        "release": "echo \"Run atma pub -m \"message\"\"",
+        "test": "atma test",
+        "server": "atma server"
+    },
+    "app-bundler": {
+        "file": "src/export.ts",
+        "outputMain": "lib/memshare.js",
+        "package": {
+            "module": "commonjs",
+            "commonjs": {
+                "output": "simplified"
+            }
+        },
+        "extensions": {
+            "io": {
+                "type": "js"
+            }
+        },
+        "defaultExtensions": {
+            "js": "ts"
+        },
+        "dynamicDependencies": [
+            "atma-io",
+            "atma-utils",
+            "^path$",
+            "child_process"
+        ],
+        "middlewares": {
+            "ts": [
+                "atma-loader-ts:read"
+            ]
+        }
+    },
+    "atma": {
+        "plugins": [
+            "atma-loader-ts"
+        ],
+        "settings": {
+            "atma-utest": {
+                "include": {
+                    "amd": true
+                }
+            },
+            "include": {
+                "amd": true,
+                "extentionDefault": {
+                    "js": "ts"
+                }
+            },
+            "atma-loader-ts": {
+                "typescript": {
+                    "compilerOptions": {
+                        "#if (TEST)": {
+                            "module": "AMD"
+                        },
+                        "#if (!TEST)": {
+                            "module": "commonjs"
+                        },
+                        "sourceMap": false
+                    }
+                }
+            }
+        }
+    }
+}
