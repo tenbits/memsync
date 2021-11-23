@@ -18,10 +18,14 @@ interface IIpcIcomeMessage {
 
 export class IpcHost extends class_EventEmitter<IIpcSocketEvents> {
 
-    private rpcHandlers: any = {};
+    private _rpcHandlers: any = {};
+    private _status = {
+        started: false,
+        connections: 0
+    };
 
     registerRpcHandlers (rpc) {
-        this.rpcHandlers = rpc;
+        this._rpcHandlers = rpc;
     }
 
     constructor (public pipeName: string) {
@@ -29,12 +33,19 @@ export class IpcHost extends class_EventEmitter<IIpcSocketEvents> {
     }
 
     stop () {
-        ipc.server.stop();
+        if (typeof (ipc.server as any).server !== 'boolean') {
+            // workaround: node-ipc if server is not connected/created, the property is boolean
+            ipc.server.stop();
+        }
         (this as any).create.clearAll();
     }
 
     send (event: string, data) {
         (ipc.server as any).broadcast(event, data);
+    }
+
+    getStatus () {
+        return this._status;
     }
 
     @memd.deco.memoize({ perInstance: true })
@@ -71,16 +82,17 @@ export class IpcHost extends class_EventEmitter<IIpcSocketEvents> {
                         })
                     //
                 });
+                this._status.started = true;
                 resolve(null);
             });
             ipc.server.on('error', error => {
                 reject(error);
             });
-            ipc.server.on('connect', () => {
-
+            ipc.server.on('connect', (client) => {
+                this._status.connections++;
             });
             ipc.server.on('disconnect', () => {
-
+                this._status.connections--;
             });
 
             ipc.server.start();
@@ -98,7 +110,7 @@ export class IpcHost extends class_EventEmitter<IIpcSocketEvents> {
     }
 
     private async processRpc(message: IIpcIcomeMessage): Promise<{ error?, result? }> {
-        let fn = obj_getProperty(this.rpcHandlers ?? {}, message.method);
+        let fn = obj_getProperty(this._rpcHandlers ?? {}, message.method);
         if (typeof fn !== 'function') {
             return { error: new Error(`${message.method} is not a function`) };
         }

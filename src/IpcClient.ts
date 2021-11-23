@@ -35,6 +35,9 @@ export class IpcClient extends class_EventEmitter<IIpcSocketEvents> {
 
 
     async callRpc <TResult = any > (method: string, ...args: any[]): Promise<TResult> {
+        if (this.disposed) {
+            return Promise.reject(new Error(`IpcClient was disposed`));
+        }
 
         let dfr = new class_Dfr();
         let id = ++this.rpcId;
@@ -71,11 +74,9 @@ export class IpcClient extends class_EventEmitter<IIpcSocketEvents> {
     }
 
     async stop () {
-
         const name = this.channelName;
 
         this.disposed = true;
-
         ipc.config.stopRetrying = true;
         if (ipc.of[name] != null) {
             ipc.of[name]
@@ -86,12 +87,18 @@ export class IpcClient extends class_EventEmitter<IIpcSocketEvents> {
                 .off('onPatchMessage', '*')
                 ;
 
-            this.socket = ipc.of[name].socket;
+            this.socket = (ipc.of[name] as any).socket;
         }
 
         ipc.disconnect(name);
 
         (this as any).connect.clearAll();
+
+        setImmediate(() => {
+            this
+                .rpcListeners
+                .forEach(x => x.reject(new Error(`IpcClient is disposed`)));
+        });
     }
 
     @memd.deco.memoize()

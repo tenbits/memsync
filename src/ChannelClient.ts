@@ -43,6 +43,11 @@ export class ChannelClient<T> extends Channel<T> {
         await this.client.stop();
     }
 
+    async getStatus () {
+        let status = await this.client.callRpc('getStatus');
+        return status;
+    }
+
     async onServerCreated () {
 
     }
@@ -66,7 +71,7 @@ export class ChannelClient<T> extends Channel<T> {
             });
             this.netVersion = message.netVersion;
             this.shared.timestamp = message.timestamp;
-            this.emit('patchReceived', message.patches);
+            this.emit('receivedPatches', message.patches);
         });
     }
 }

@@ -8,12 +8,13 @@ export namespace IncWorker {
         await mem.start();
 
         interval = setInterval(() => {
-            console.log('[inc] Patched', mem.ipc.shared.data.num);
             mem.patch({
                 $inc: {
                     num: 1
                 }
             });
+            console.log('[inc] Patched', mem.data.num);
+
         }, 500)
     }
 }

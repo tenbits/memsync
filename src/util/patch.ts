@@ -17,6 +17,18 @@ export function obj_patch<T>(obj: T, patch: UpdateQuery<T>) {
     }
     return obj;
 };
+
+export function obj_patchKeys<T>(patch: UpdateQuery<T>) {
+
+    let keys = Object.create(null);
+    for (const key in patch) {
+        let hash = patch[key]
+        for (let key in hash) {
+            keys[key] = hash[key];
+        }
+    }
+    return keys;
+};
 export function obj_patchConflict<T = any>(a: UpdateQuery<T>, b: UpdateQuery<T>) {
     if (a.$set && b.$set) {
         for (let key in a.$set) {

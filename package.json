@@ -1,26 +1,26 @@
 {
     "name": "memshare",
-    "version": "0.5.8",
+    "version": "0.5.9",
     "main": "./lib/memshare.js",
     "author": {
         "name": "Alex Kit",
         "email": "alex.kit@atmajs.com"
     },
     "dependencies": {
-        "@types/node-ipc": "^9.1.3",
+        "@types/node-ipc": "^9.2.0",
         "alot": "^0.2.83",
         "atma-io": "^1.2.26",
         "atma-utils": "^0.1.38",
         "memd": "^0.2.90",
-        "node-ipc": "^9.1.3",
+        "node-ipc": "^9.2.1",
         "shellbee": "^0.5.12",
         "tree-kill": "^1.2.2"
     },
     "devDependencies": {
         "@types/node": "^12.6.2",
         "app-bundler": "0.0.70",
-        "atma": "^0.12.18",
-        "atma-loader-ts": "^1.1.12",
+        "atma": "^0.12.33",
+        "atma-loader-ts": "^1.1.16",
         "dts-bundle": "^0.7.3"
     },
     "scripts": {

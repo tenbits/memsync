@@ -59,12 +59,16 @@ export class ChannelHost<T> extends Channel<T> {
                 patches: message.patches,
                 timestamp: this.shared.timestamp,
             });
-            this.emit('patchReceived', message.patches)
+            this.emit('receivedPatches', message.patches)
 
             return {
                 prevPatches: prevPatches,
                 netVersion: this.shared.version,
             };
+        },
+        getStatus: async () => {
+            let status = await this.getStatus();
+            return status;
         }
     }
 
@@ -78,6 +82,9 @@ export class ChannelHost<T> extends Channel<T> {
     }
     async close () {
         this.host.stop();
+    }
+    async getStatus () {
+        return this.host?.getStatus();
     }
 
     async onServerCreated () {

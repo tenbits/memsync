@@ -7,49 +7,103 @@ declare module 'memshare' {
 }
 
 declare module 'memshare/MemShare' {
-    import { IpcPipe } from 'memshare/IpcPipe';
+    import { class_EventEmitter } from 'atma-utils';
+    import { IPipeType } from 'memshare/interface/IPipeType';
+    import { IpcPipe, IpcPipeOptions } from 'memshare/IpcPipe';
+    import { IPatch } from 'memshare/SharedObject';
     import { UpdateQuery } from 'memshare/util/types';
-    export class MemShare<T> {
+    interface IMemShareEvents<T> {
+        receivedPatches(patches: IPatch<T>[]): any;
+        connected(type: IPipeType): any;
+        disconnected(type: IPipeType): any;
+    }
+    export interface IMemShareOptions extends IpcPipeOptions {
+    }
+    export class MemShare<T> extends class_EventEmitter<IMemShareEvents<T>> {
         name: string;
         defaultObject: T;
-        pipe: IpcPipe<any>;
-        data: any;
-        constructor(name: string, defaultObject?: T);
+        options: IMemShareOptions;
+        ipc: IpcPipe<any>;
+        data: T;
+        constructor(name: string, defaultObject?: T, options?: IMemShareOptions);
         start(): Promise<void>;
         stop(): Promise<void>;
         patch(patch: UpdateQuery<T>): Promise<void>;
+        onceAsync<TKey extends keyof IMemShareEvents<T>>(event: TKey): Promise<Parameters<IMemShareEvents<T>[TKey]>[0]>;
+        observe(property: string, cb: (val: any) => void): this;
+        getStatus(): any;
+        setOptions(opts?: {
+            logLevel: 'none' | 'error' | 'info';
+        }): void;
     }
+    export {};
+}
+
+declare module 'memshare/interface/IPipeType' {
+    export type IPipeType = 'host' | 'client';
 }
 
 declare module 'memshare/IpcPipe' {
     import { class_EventEmitter } from 'atma-utils';
-    import { Channel } from 'memshare/Channel';
     import { IPipeType } from 'memshare/interface/IPipeType';
     import { IPatch, SharedObject } from 'memshare/SharedObject';
     import { UpdateQuery } from 'memshare/util/types';
-    export interface IpcPipeEvents {
+    export interface IpcPipeEvents<T> {
         starting(type: IPipeType): any;
         startingFailed(type: IPipeType, error?: any): any;
         connected(type: IPipeType): any;
+        disconnected(type: IPipeType): any;
+        receivedPatches(patches: IPatch<T>[]): any;
     }
     export interface IpcPipeOptions {
         serverOnly?: boolean;
         clientOnly?: boolean;
+        logEvents?: boolean;
     }
-    export class IpcPipe<T = any> extends class_EventEmitter<IpcPipeEvents> {
+    export class IpcPipe<T = any> extends class_EventEmitter<IpcPipeEvents<T>> {
         name: string;
         options?: IpcPipeOptions;
+        startedAt: Date;
         status: 'none' | 'start-host' | 'start-client' | 'host' | 'client';
         connection: 'none' | 'connected';
         shared: SharedObject<T>;
-        channel: Channel<T>;
-        pending: IPatch[];
         constructor(name: string, defaultObject: any, options?: IpcPipeOptions);
         start(): Promise<void>;
         stop(): Promise<void>;
         patch(update: UpdateQuery<T>): Promise<void>;
-        get(): Promise<void>;
-        emit<TKey extends keyof IpcPipeEvents>(event: TKey, ...args: Parameters<IpcPipeEvents[TKey]>): this;
+        getStatus(): any;
+        emit<TKey extends keyof IpcPipeEvents<T>>(event: TKey, ...args: Parameters<IpcPipeEvents<T>[TKey]>): this;
+    }
+}
+
+declare module 'memshare/SharedObject' {
+    import { UpdateQuery } from 'memshare/util/types';
+    export class SharedObject<T = any> {
+        version: number;
+        timestamp: number;
+        data: T;
+        patches: IPatch<T>[];
+        observers: {
+            [path: string]: Function[];
+        };
+        constructor(defaultObject?: any);
+        patch(update: UpdateQuery<T>, version?: number): {
+            version: number;
+            timestamp: number;
+            patch: UpdateQuery<T>;
+        };
+        observe(path: string, cb: any): void;
+        toJson(): {
+            version: number;
+            timestamp: number;
+            data: T;
+        };
+        setData(data: T, timestamp: number, version: number): void;
+    }
+    export interface IPatch<T = any> {
+        version: number;
+        timestamp: number;
+        patch: UpdateQuery<T>;
     }
 }
 
@@ -154,58 +208,5 @@ declare module 'memshare/util/types' {
             readonly [key in KeysOfAType<TSchema, FieldType>]?: AssignableType;
     };
     export {};
-}
-
-declare module 'memshare/Channel' {
-    import { class_EventEmitter } from 'atma-utils';
-    import { IPatch, SharedObject } from 'memshare/SharedObject';
-    export interface IChannelEvents {
-        disconnect(): any;
-    }
-    export abstract class Channel<T> extends class_EventEmitter<IChannelEvents> {
-        shared: SharedObject;
-        abstract name: string;
-        localVersion: number;
-        netVersion: number;
-        id: number;
-        patches: IPatch[];
-        pending: IPatch[];
-        isReady: boolean;
-        constructor(shared: SharedObject);
-        abstract open(): Promise<any>;
-        abstract close(): Promise<any>;
-        abstract send(patches: IPatch<any>[]): Promise<any>;
-        protected onOpen(): void;
-    }
-}
-
-declare module 'memshare/interface/IPipeType' {
-    export type IPipeType = 'host' | 'client';
-}
-
-declare module 'memshare/SharedObject' {
-    import { UpdateQuery } from 'memshare/util/types';
-    export class SharedObject<T = any> {
-        version: number;
-        timestamp: number;
-        data: T;
-        patches: IPatch<T>[];
-        constructor(defaultObject?: any);
-        patch(update: UpdateQuery<T>, version?: number): {
-            version: number;
-            timestamp: number;
-            patch: UpdateQuery<T>;
-        };
-        toJson(): {
-            version: number;
-            timestamp: number;
-            data: T;
-        };
-    }
-    export interface IPatch<T = any> {
-        version: number;
-        timestamp: number;
-        patch: UpdateQuery<T>;
-    }
 }
 

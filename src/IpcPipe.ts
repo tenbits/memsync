@@ -16,7 +16,8 @@ export interface IpcPipeEvents <T> {
     starting (type: IPipeType)
     startingFailed (type: IPipeType, error?)
     connected (type: IPipeType)
-    patchReceived (patches: IPatch<T>[])
+    disconnected (type: IPipeType)
+    receivedPatches (patches: IPatch<T>[])
 }
 export interface IpcPipeOptions {
     serverOnly?: boolean
@@ -25,15 +26,13 @@ export interface IpcPipeOptions {
 }
 
 export class IpcPipe<T = any> extends class_EventEmitter<IpcPipeEvents<T>> {
-
+    startedAt: Date
     status: 'none' | 'start-host' | 'start-client' | 'host' | 'client' = 'none';
     connection: 'none' | 'connected' = 'none';
-
     shared: SharedObject<T>
 
-    channel: Channel<T>
-
-    pending: IPatch[] = []
+    private channel: Channel<T>
+    private pendingPatches: IPatch[] = []
 
     constructor (public name: string, defaultObject: any, public options?: IpcPipeOptions) {
         super();
@@ -48,13 +47,13 @@ export class IpcPipe<T = any> extends class_EventEmitter<IpcPipeEvents<T>> {
         // process.on('SIGTERM', () => {
         //     console.log('SIGTERM!!')
         //     this.channel?.close();
-
         //  });
     }
 
     async start () {
         const type: 'client' | 'host' = this.options?.clientOnly ? 'client' : 'host';
         await this.tryJoin(type);
+        this.startedAt = new Date();
     }
     async stop () {
         await this.channel?.close();
@@ -64,16 +63,30 @@ export class IpcPipe<T = any> extends class_EventEmitter<IpcPipeEvents<T>> {
         let patch = this.shared.patch(update);
 
         if (this.connection !== 'connected') {
-            this.pending.push(patch)
+            this.pendingPatches.push(patch)
         } else {
             this.channel.send([ patch ]);
         }
     }
-    async get () {
-        if (this.status == null) {
-            await this.start();
+
+    async getStatus () {
+        let channel = this.channel;
+        let host;
+        try {
+            host = await channel?.getStatus();
+        } finally {
+            // Channel was changed
+            if (channel !== this.channel) {
+                return this.getStatus();
+            }
         }
+        return {
+            status: this.status,
+            channel: this.channel.name,
+            host,
+        };
     }
+
 
     private async tryJoin (type: IPipeType) {
         if (this.status?.startsWith('create')) {
@@ -94,9 +107,8 @@ export class IpcPipe<T = any> extends class_EventEmitter<IpcPipeEvents<T>> {
             await this.channel.open();
             this.status = type;
             this.onConnected();
-
         } catch (error) {
-            this.emit('startingFailed', type, error);
+            this.emit('startingFailed', type, error.message);
             this.status = 'none';
             this.connection = 'none';
 
@@ -114,22 +126,30 @@ export class IpcPipe<T = any> extends class_EventEmitter<IpcPipeEvents<T>> {
         this.emit('connected', this.status as any);
         this
             .channel
+            .on('receivedPatches', patches => this.emit('receivedPatches', patches))
             .on('disconnect', async () => {
+                this.emit('disconnected', this.status as any);
                 this.connection = 'none';
                 this.status = 'none';
                 this.tryJoin('host');
             });
 
-        if (this.pending.length > 0) {
-            let arr = this.pending.splice(0);
+        if (this.pendingPatches.length > 0) {
+            let arr = this.pendingPatches.splice(0);
             this.channel.send(arr);
         }
     }
 
     emit <TKey extends keyof IpcPipeEvents<T>> (event: TKey, ...args: Parameters<IpcPipeEvents<T>[TKey]>) {
         if (this.options?.logEvents) {
-            console.log(`Pipe ${this.status}`, event, ...args);
+            console.log(`Pipe with state '${this.status}' emits '${event}' with args: `, ...args);
         }
         return super.emit(event, ...args);
     }
+}
+
+async function wait (ms) {
+    return new Promise(resolve => {
+        setTimeout(resolve, ms);
+    })
 }

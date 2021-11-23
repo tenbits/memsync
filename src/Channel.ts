@@ -4,7 +4,7 @@ import { IPatch, SharedObject } from './SharedObject';
 import { UpdateQuery } from './util/types';
 
 export interface IChannelEvents<T> {
-    patchReceived (patch: IPatch<T>[])
+    receivedPatches (patch: IPatch<T>[])
     disconnect ()
 }
 export abstract class Channel<T> extends class_EventEmitter<IChannelEvents<T>> {
@@ -38,6 +38,7 @@ export abstract class Channel<T> extends class_EventEmitter<IChannelEvents<T>> {
     abstract open(): Promise<any>
     abstract close(): Promise<any>
     abstract send (patches: IPatch<any>[]): Promise<any>;
+    abstract getStatus(): Promise<any>
 
     protected onOpen () {
         this.isReady = true;

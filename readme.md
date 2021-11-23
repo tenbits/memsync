@@ -1,14 +1,18 @@
-# MemShare
+# Alot
+
+<p align='center'>
+    <img src='assets/background.jpg'/>
+</p>
 
 ----
-[![Build Status](https://travis-ci.org/atmajs/memshare.svg?branch=master)](https://travis-ci.org/atmajs/memshare)
+[![Build Status](https://travis-ci.org/atmajs/memshare.svg?branch=master)](https://travis-ci.org/tenbits/memshare)
 [![NPM version](https://badge.fury.io/js/memshare.svg)](http://badge.fury.io/js/memshare)
 
 
 Process-to-process object synchronization. Backed by [`node-ipc`](https://github.com/RIAEvangelist/node-ipc).
 
 * Multiple NodeJS processes can write to and read from the shared object.
-* No extra server host process is needed, every process can act as a host, when the host process exits, the host role is taken by another process.
+* No extra server host process is needed, every process can act as a host, when the host process exits, the host role is taken over by another process.
 
 
 ## API
@@ -45,8 +49,8 @@ await memshare.patch({
 ```
 
 We apply the patch immediately the object, and will try to
-1. if client, send to the host, which will accept the patch it itself, and broadcast the patch to other nodes.
-2. if server, broadcast the patch to nodes, if any.
+1. if client: send to the host, which will accept the patch to itself, and broadcast the patch to other nodes.
+2. if server: broadcast the patch to nodes, if any.
 
 ##### Race conditions and conflict resolutions
 
@@ -63,6 +67,16 @@ You can stop the node anytime
 
 ```ts
 memshare.stop()
+```
+
+
+### Observe
+
+Observe the objects properties
+```ts
+memshare.observe('foo', (fooValue) => {
+    console.log(`FooValue changed`, fooValue);
+})
 ```
 
 ----
