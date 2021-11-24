@@ -1,4 +1,4 @@
-# Alot
+# Memshare
 
 <p align='center'>
     <img src='assets/background.jpg'/>
