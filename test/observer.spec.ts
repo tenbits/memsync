@@ -27,8 +27,8 @@ UTest({
                 eq_(val, started.num);
                 eq_(val, startedVal + 1);
 
-                await incProc.terminate();
                 await reader.stop();
+                await incProc.terminate();
                 await wait(1000);
 
                 let hasPeers = await reader.hasPeers();

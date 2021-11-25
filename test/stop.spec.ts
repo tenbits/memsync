@@ -38,12 +38,12 @@ UTest({
             logEvents: false
         });
         await reader.start();
-        gte_(reader.data.num, 3);
+        gte_(reader.data.num, 3, 'Number should be already >3');
 
 
         await incProc.terminate();
         await reader.stop();
-        await wait(500);
+        await wait(1000);
 
         let hasPeersAfter = await reader.hasPeers(`/tmp/app.memshare_inc`);
         eq_(hasPeersAfter, false);
