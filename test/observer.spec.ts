@@ -33,6 +33,7 @@ UTest({
 
                 let hasPeers = await reader.hasPeers();
                 eq_(hasPeers, false);
+                resolve(null);
             });
         })
 

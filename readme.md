@@ -5,7 +5,7 @@
 </p>
 
 ----
-[![Build Status](https://travis-ci.org/atmajs/memshare.svg?branch=master)](https://travis-ci.org/tenbits/memshare)
+[![Build Status](https://travis-ci.com/atmajs/memshare.svg?branch=master)](https://travis-ci.com/tenbits/memshare)
 [![NPM version](https://badge.fury.io/js/memshare.svg)](http://badge.fury.io/js/memshare)
 
 
