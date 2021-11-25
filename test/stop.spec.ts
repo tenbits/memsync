@@ -8,7 +8,9 @@ UTest({
         });
         await reader.start();
 
+
         let status = await reader.getStatus();
+
         has_(status, {
             status: 'host',
             host: {
@@ -17,6 +19,7 @@ UTest({
         });
 
         let hasPeers = await reader.hasPeers(`/tmp/app.memshare_stoppable`);
+
         eq_(hasPeers, true);
 
         await reader.stop();
@@ -24,7 +27,7 @@ UTest({
         hasPeers = await reader.hasPeers(`/tmp/app.memshare_stoppable`);
         eq_(hasPeers, false);
     },
-    async '!ensure we stop server and and client' () {
+    async 'ensure we stop server and and client' () {
         let incProc = new Shell({
             command: `atma run ./test/fixtures/inc.ts`,
             matchReady: /Patched 3/,
@@ -41,8 +44,8 @@ UTest({
         gte_(reader.data.num, 3, 'Number should be already >3');
 
 
-        await incProc.terminate();
         await reader.stop();
+        await incProc.terminate();
         await wait(1000);
 
         let hasPeersAfter = await reader.hasPeers(`/tmp/app.memshare_inc`);

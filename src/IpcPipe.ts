@@ -89,7 +89,6 @@ export class IpcPipe<T = any> extends class_EventEmitter<IpcPipeEvents<T>> {
     }
     hasPeers (path: string) {
         path = path ?? (ipc.server as any).path;
-        console.log(path, '<<<PATH')
         return new Promise(resolve => {
             const socket = net
                 .connect({ path: path }, function () {
