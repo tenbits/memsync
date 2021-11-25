@@ -52,7 +52,10 @@
             "atma-io",
             "atma-utils",
             "^path$",
-            "child_process"
+            "child_process",
+            "node-ipc",
+            "^fs$",
+            "^net$"
         ],
         "middlewares": {
             "ts": [

@@ -49,6 +49,9 @@ export class MemShare<T> extends class_EventEmitter<IMemShareEvents<T>> {
             this.once(event, resolve as any);
         });
     }
+    hasPeers (path?: string) {
+        return this.ipc.hasPeers(path);
+    }
 
     observe (property: string, cb: (val) => void): this {
         this.ipc.shared.observe(property, cb);

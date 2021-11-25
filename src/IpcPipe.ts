@@ -10,8 +10,8 @@ import { IpcClient } from './IpcClient';
 import { IpcHost } from './IpcHost';
 import { IPatch, SharedObject } from './SharedObject';
 import { UpdateQuery } from './util/types';
-
-
+import * as ipc from 'node-ipc';
+import * as net from 'net';
 export interface IpcPipeEvents <T> {
     starting (type: IPipeType)
     startingFailed (type: IPipeType, error?)
@@ -27,7 +27,7 @@ export interface IpcPipeOptions {
 
 export class IpcPipe<T = any> extends class_EventEmitter<IpcPipeEvents<T>> {
     startedAt: Date
-    status: 'none' | 'start-host' | 'start-client' | 'host' | 'client' = 'none';
+    status: 'none' | 'start-host' | 'start-client' | 'host' | 'client' | 'stopped' = 'none';
     connection: 'none' | 'connected' = 'none';
     shared: SharedObject<T>
 
@@ -56,6 +56,7 @@ export class IpcPipe<T = any> extends class_EventEmitter<IpcPipeEvents<T>> {
         this.startedAt = new Date();
     }
     async stop () {
+        this.status = 'stopped';
         await this.channel?.close();
     }
 
@@ -85,6 +86,20 @@ export class IpcPipe<T = any> extends class_EventEmitter<IpcPipeEvents<T>> {
             channel: this.channel.name,
             host,
         };
+    }
+    hasPeers (path: string) {
+        path = path ?? (ipc.server as any).path;
+        console.log(path, '<<<PATH')
+        return new Promise(resolve => {
+            const socket = net
+                .connect({ path: path }, function () {
+                    socket?.destroy();
+                    resolve(true);
+                })
+                .on('error', function (error) {
+                    resolve(false);
+                });
+        });
     }
 
 
@@ -128,6 +143,9 @@ export class IpcPipe<T = any> extends class_EventEmitter<IpcPipeEvents<T>> {
             .channel
             .on('receivedPatches', patches => this.emit('receivedPatches', patches))
             .on('disconnect', async () => {
+                if (this.status === 'stopped') {
+                    return;
+                }
                 this.emit('disconnected', this.status as any);
                 this.connection = 'none';
                 this.status = 'none';

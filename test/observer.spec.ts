@@ -29,9 +29,20 @@ UTest({
 
                 await incProc.terminate();
                 await reader.stop();
-                resolve(null);
-            })
+                await wait(500);
+
+                let hasPeers = await reader.hasPeers();
+                eq_(hasPeers, false);
+            });
         })
 
     }
 });
+
+
+
+function wait (ms) {
+    return new Promise(resolve => {
+        setTimeout(resolve, ms)
+    });
+}

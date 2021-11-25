@@ -1,6 +1,8 @@
 import { class_EventEmitter, obj_getProperty } from 'atma-utils';
 import memd from 'memd';
 import * as ipc from 'node-ipc';
+import * as net from 'net';
+import * as fs from 'fs';
 import { EIpcMessageType } from './interface/EIpcMessageType';
 import { IPatchMessageDto } from './interface/IPatchMessageDto';
 
@@ -54,6 +56,7 @@ export class IpcHost extends class_EventEmitter<IIpcSocketEvents> {
         return new Promise((resolve, reject) => {
             ipc.config.id = `memshare_${this.pipeName}`;
             ipc.config.silent = true;
+            ipc.config.unlink = false;
 
             ipc.serve(() => {
 
@@ -85,7 +88,14 @@ export class IpcHost extends class_EventEmitter<IIpcSocketEvents> {
                 this._status.started = true;
                 resolve(null);
             });
-            ipc.server.on('error', error => {
+            ipc.server.on('error', async error => {
+                if (error.code === 'EADDRINUSE') {
+                    let cleaned = await this.checkStalled();
+                    if (cleaned) {
+                        ipc.server.start();
+                        return;
+                    }
+                }
                 reject(error);
             });
             ipc.server.on('connect', (client) => {
@@ -99,7 +109,28 @@ export class IpcHost extends class_EventEmitter<IIpcSocketEvents> {
         });
     }
 
+    private checkStalled() {
+        const path = (ipc.server as any).path;
+        // double check
+        return new Promise(resolve => {
+            const socket = net
+                .connect({ path: path }, function () {
+                    socket?.destroy();
+                    resolve(false);
+                })
+                .on('error', function (error: { code }) {
 
+                    if (error.code === 'ECONNREFUSED') {
+                        // not in use: delete it and re-listen
+                        fs.unlink(path, (err) => {
+                            resolve(err == null);
+                        });
+                        return;
+                    }
+                    resolve(false);
+                });
+        });
+    }
 
     private async onIncomeMessage (message: IIpcIcomeMessage) {
         switch (message.type) {

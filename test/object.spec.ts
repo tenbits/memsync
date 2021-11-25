@@ -16,6 +16,7 @@ UTest({
         let reader = new MemShare('inc', { num: 0 }, {
             logEvents: false
         });
+
         await reader.start();
 
         gte_(reader.data.num, 3);
@@ -24,7 +25,7 @@ UTest({
         has_(status, {
             status: 'client',
             host: {
-                connections: 1
+                started: true
             }
         });
 
@@ -32,15 +33,7 @@ UTest({
 
         '> host was terminated, make current object to host'
 
-        status = await reader.getStatus();
-        has_(status, {
-            status: 'start-host',
-            host: {
-                started: false
-            }
-        });
-
-        await wait(1000);
+        await wait(500);
         status = await reader.getStatus();
         has_(status, {
             status: 'host',
@@ -50,6 +43,10 @@ UTest({
         });
 
         await reader.stop();
+        await wait(500);
+
+        let hasPeers = await reader.hasPeers(`/tmp/app.memshare_inc`);
+        eq_(hasPeers, false);
     }
 });
 
