@@ -29,7 +29,7 @@ UTest({
 
                 await incProc.terminate();
                 await reader.stop();
-                await wait(500);
+                await wait(1000);
 
                 let hasPeers = await reader.hasPeers();
                 eq_(hasPeers, false);
