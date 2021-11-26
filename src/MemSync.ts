@@ -2,6 +2,7 @@ import { class_EventEmitter } from 'atma-utils';
 import { IPipeType } from './interface/IPipeType';
 import { IpcPipe, IpcPipeOptions } from './IpcPipe';
 import { Logger } from './log/Logger';
+import { Server } from './server/Server';
 import { IPatch } from './SharedObject';
 import { UpdateQuery } from './util/types';
 
@@ -16,7 +17,9 @@ interface IMemSyncInfo {
 }
 
 export interface IMemSyncOptions extends IpcPipeOptions {
-
+    server?: {
+        port: number
+    }
 }
 export class MemSync<T> extends class_EventEmitter<IMemSyncEvents<T>> {
 
@@ -31,6 +34,10 @@ export class MemSync<T> extends class_EventEmitter<IMemSyncEvents<T>> {
         this.ipc.on('receivedPatches', patches => this.emit('receivedPatches', patches));
         this.ipc.on('connected', (type) => this.emit('connected', type));
         this.ipc.on('disconnected', (type) => this.emit('disconnected', type));
+
+        if (options?.server?.port) {
+            Server.create(options.server.port).register(name, this.ipc.shared);
+        }
     }
 
     async start() {

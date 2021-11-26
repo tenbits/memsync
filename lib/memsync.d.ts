@@ -18,6 +18,9 @@ declare module 'memsync/MemSync' {
         disconnected(type: IPipeType): any;
     }
     export interface IMemSyncOptions extends IpcPipeOptions {
+        server?: {
+            port: number;
+        };
     }
     export class MemSync<T> extends class_EventEmitter<IMemSyncEvents<T>> {
         name: string;

@@ -1,14 +1,17 @@
 {
     "name": "memsync",
     "description": "Cross-process object/memory synchronization",
-    "version": "0.5.11",
+    "version": "0.5.13",
     "author": {
         "name": "Alex Kit",
         "email": "alex.kit@atmajs.com"
     },
     "main": "./lib/memsync.js",
     "types": "./lib/memsync.d.ts",
-    "keywords": ["object synchronization", "sync"],
+    "keywords": [
+        "object synchronization",
+        "sync"
+    ],
     "repository": {
         "type": "git",
         "url": "https://github.com/tenbits/memsync"
@@ -24,9 +27,10 @@
         "@types/node-ipc": "^9.2.0",
         "app-bundler": "0.0.70",
         "atma": "^0.12.33",
-        "shellbee": "^0.5.16",
         "atma-loader-ts": "^1.1.16",
-        "dts-bundle": "^0.7.3"
+        "axios": "^0.24.0",
+        "dts-bundle": "^0.7.3",
+        "shellbee": "^0.5.16"
     },
     "scripts": {
         "build": "app-bundler && npm run dts",
@@ -60,7 +64,8 @@
             "child_process",
             "node-ipc",
             "^fs$",
-            "^net$"
+            "^net$",
+            "^http$"
         ],
         "middlewares": {
             "ts": [

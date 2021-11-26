@@ -79,4 +79,24 @@ memsync.observe('foo', (fooValue) => {
 })
 ```
 
+### Server
+The process may expose a server to query the object and it current state
+
+```js
+let memory = new MemSync('foo-bar', { num: 0 }, {
+    server: { port: 8883 }
+});
+// Starts memory sync process, and also exposes the 8883 for http queries
+await memory.start();
+```
+
+You can query the state of the `foo-bar` object from extern
+
+```sh
+curl http://localhost:8883/foo-bar
+
+//e.g.> `{ num: 1}`
+```
+
+
 ----
