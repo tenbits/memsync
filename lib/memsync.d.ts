@@ -26,7 +26,7 @@ declare module 'memsync/MemSync' {
         ipc: IpcPipe<any>;
         data: T;
         constructor(name: string, defaultObject?: T, options?: IMemSyncOptions);
-        start(): Promise<void>;
+        start(): Promise<"host" | "client" | "none" | "start-host" | "start-client" | "stopped">;
         stop(): Promise<void>;
         patch(patch: UpdateQuery<T>): Promise<void>;
         onceAsync<TKey extends keyof IMemSyncEvents<T>>(event: TKey): Promise<Parameters<IMemSyncEvents<T>[TKey]>[0]>;
@@ -69,7 +69,7 @@ declare module 'memsync/IpcPipe' {
         connection: 'none' | 'connected';
         shared: SharedObject<T>;
         constructor(name: string, defaultObject: any, options?: IpcPipeOptions);
-        start(): Promise<void>;
+        start(): Promise<"host" | "client" | "none" | "start-host" | "start-client" | "stopped">;
         stop(): Promise<void>;
         patch(update: UpdateQuery<T>): Promise<void>;
         getStatus(): any;

@@ -34,7 +34,7 @@ export class MemSync<T> extends class_EventEmitter<IMemSyncEvents<T>> {
     }
 
     async start() {
-        await this.ipc.start();
+        return await this.ipc.start();
     }
 
     async stop() {

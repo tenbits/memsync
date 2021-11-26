@@ -54,6 +54,7 @@ export class IpcPipe<T = any> extends class_EventEmitter<IpcPipeEvents<T>> {
         const type: 'client' | 'host' = this.options?.clientOnly ? 'client' : 'host';
         await this.tryJoin(type);
         this.startedAt = new Date();
+        return this.status;
     }
     async stop () {
         this.status = 'stopped';

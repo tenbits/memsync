@@ -1,7 +1,7 @@
 # MemSync
 
 <p align='center'>
-    <img src='assets/background.jpg'/>
+    <img src='./assets/background.jpg'/>
 </p>
 
 ----

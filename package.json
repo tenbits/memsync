@@ -1,10 +1,17 @@
 {
     "name": "memsync",
-    "version": "0.5.10",
-    "main": "./lib/memsync.js",
+    "description": "Cross-process object/memory synchronization",
+    "version": "0.5.11",
     "author": {
         "name": "Alex Kit",
         "email": "alex.kit@atmajs.com"
+    },
+    "main": "./lib/memsync.js",
+    "types": "./lib/memsync.d.ts",
+    "keywords": ["object synchronization", "sync"],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/tenbits/memsync"
     },
     "dependencies": {
         "alot": "^0.2.83",
