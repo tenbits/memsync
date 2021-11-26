@@ -54,7 +54,7 @@ export class IpcHost extends class_EventEmitter<IIpcSocketEvents> {
     create() {
 
         return new Promise((resolve, reject) => {
-            ipc.config.id = `memshare_${this.pipeName}`;
+            ipc.config.id = `memsync_${this.pipeName}`;
             ipc.config.silent = true;
             ipc.config.unlink = false;
 

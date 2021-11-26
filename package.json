@@ -1,7 +1,7 @@
 {
-    "name": "memshare",
-    "version": "0.5.9",
-    "main": "./lib/memshare.js",
+    "name": "memsync",
+    "version": "0.5.10",
+    "main": "./lib/memsync.js",
     "author": {
         "name": "Alex Kit",
         "email": "alex.kit@atmajs.com"
@@ -31,7 +31,7 @@
     },
     "app-bundler": {
         "file": "src/export.ts",
-        "outputMain": "lib/memshare.js",
+        "outputMain": "lib/memsync.js",
         "package": {
             "module": "commonjs",
             "commonjs": {

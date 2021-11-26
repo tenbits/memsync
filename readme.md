@@ -1,12 +1,12 @@
-# Memshare
+# MemSync
 
 <p align='center'>
     <img src='assets/background.jpg'/>
 </p>
 
 ----
-[![Build Status](https://travis-ci.com/atmajs/memshare.svg?branch=master)](https://travis-ci.com/tenbits/memshare)
-[![NPM version](https://badge.fury.io/js/memshare.svg)](http://badge.fury.io/js/memshare)
+[![Build Status](https://travis-ci.com/tenbits/memsync.svg?branch=master)](https://travis-ci.com/tenbits/memsync)
+[![NPM version](https://badge.fury.io/js/memsync.svg)](http://badge.fury.io/js/memsync)
 
 
 Process-to-process object synchronization. Backed by [`node-ipc`](https://github.com/RIAEvangelist/node-ipc).
@@ -18,17 +18,17 @@ Process-to-process object synchronization. Backed by [`node-ipc`](https://github
 ## API
 
 
-### Instantiate the memshare object
+### Instantiate the memsync object
 
 ```ts
-import { MemShare } from 'memshare'
-let memshare = new MemShare(/* name */ 'my_shared_object', /* defaultObject */ {
+import { MemSync } from 'memsync'
+let memsync = new MemSync(/* name */ 'my_shared_object', /* defaultObject */ {
     foo: 1,
     bar: 2,
     qux: [ 'one', 'two' ]
 });
 
-await memshare.start();
+await memsync.start();
 ```
 
 `start` discovers other nodes
@@ -41,7 +41,7 @@ await memshare.start();
 We support partially the `mongodb` [update operators](https://docs.mongodb.com/manual/reference/operator/update/)
 
 ```ts
-await memshare.patch({
+await memsync.patch({
     $set: {
         foo: 2
     }
@@ -66,7 +66,7 @@ You can stop the node anytime
 2. if it is a server, it also stops listening, and one of alive nodes (if any) will act then as a server
 
 ```ts
-memshare.stop()
+memsync.stop()
 ```
 
 
@@ -74,7 +74,7 @@ memshare.stop()
 
 Observe the objects properties
 ```ts
-memshare.observe('foo', (fooValue) => {
+memsync.observe('foo', (fooValue) => {
     console.log(`FooValue changed`, fooValue);
 })
 ```

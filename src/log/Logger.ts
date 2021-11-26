@@ -10,17 +10,17 @@ export class Logger {
 
     info (message: string) {
         if (this.level === ELogLevel.Info) {
-            console.log('Memshare Info:', message);
+            console.log('Memsync Info:', message);
         }
     }
     warn (message: string) {
         if (this.level >= ELogLevel.Warn) {
-            console.warn('Memshare Warn:', message);
+            console.warn('Memsync Warn:', message);
         }
     }
     error (message: string) {
         if (this.level >= ELogLevel.Error) {
-            console.error('Memshare Error:', message);
+            console.error('Memsync Error:', message);
         }
     }
     setLevel (level: ELogLevel) {

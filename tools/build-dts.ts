@@ -9,12 +9,12 @@ async function process () {
     }
 
     dts.bundle(<any> {
-        name: 'memshare',
+        name: 'memsync',
         main: './ts-temp/export.d.ts',
         out: './typings/index.d.ts'
     });
 
-    File.copyTo('./ts-temp/typings/index.d.ts', './lib/memshare.d.ts');
+    File.copyTo('./ts-temp/typings/index.d.ts', './lib/memsync.d.ts');
 }
 
 namespace Preprocess {

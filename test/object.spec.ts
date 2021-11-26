@@ -1,4 +1,4 @@
-import { MemShare } from '../src/MemShare';
+import { MemSync } from '../src/MemSync';
 import { Shell } from 'shellbee'
 
 UTest({
@@ -13,7 +13,7 @@ UTest({
 
         await incProc.onReadyAsync();
 
-        let reader = new MemShare('inc', { num: 0 }, {
+        let reader = new MemSync('inc', { num: 0 }, {
             logEvents: false
         });
 
@@ -45,7 +45,7 @@ UTest({
         await reader.stop();
         await wait(500);
 
-        let hasPeers = await reader.hasPeers(`/tmp/app.memshare_inc`);
+        let hasPeers = await reader.hasPeers(`/tmp/app.memsync_inc`);
         eq_(hasPeers, false);
     }
 });

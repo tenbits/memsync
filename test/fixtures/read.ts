@@ -1,7 +1,7 @@
-import { MemShare } from '../../src/MemShare'
+import { MemSync } from '../../src/MemSync'
 
 export namespace ReadWorker {
-    const mem = new MemShare('inc', { num: 0 })
+    const mem = new MemSync('inc', { num: 0 })
     let interval;
 
     export async function start () {

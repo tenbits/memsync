@@ -2,34 +2,35 @@
 // Dependencies for this module:
 //   ../atma-utils
 
-declare module 'memshare' {
-    export { MemShare } from 'memshare/MemShare';
+declare module 'memsync' {
+    export { MemSync } from 'memsync/MemSync';
 }
 
-declare module 'memshare/MemShare' {
+declare module 'memsync/MemSync' {
     import { class_EventEmitter } from 'atma-utils';
-    import { IPipeType } from 'memshare/interface/IPipeType';
-    import { IpcPipe, IpcPipeOptions } from 'memshare/IpcPipe';
-    import { IPatch } from 'memshare/SharedObject';
-    import { UpdateQuery } from 'memshare/util/types';
-    interface IMemShareEvents<T> {
+    import { IPipeType } from 'memsync/interface/IPipeType';
+    import { IpcPipe, IpcPipeOptions } from 'memsync/IpcPipe';
+    import { IPatch } from 'memsync/SharedObject';
+    import { UpdateQuery } from 'memsync/util/types';
+    interface IMemSyncEvents<T> {
         receivedPatches(patches: IPatch<T>[]): any;
         connected(type: IPipeType): any;
         disconnected(type: IPipeType): any;
     }
-    export interface IMemShareOptions extends IpcPipeOptions {
+    export interface IMemSyncOptions extends IpcPipeOptions {
     }
-    export class MemShare<T> extends class_EventEmitter<IMemShareEvents<T>> {
+    export class MemSync<T> extends class_EventEmitter<IMemSyncEvents<T>> {
         name: string;
         defaultObject: T;
-        options: IMemShareOptions;
+        options: IMemSyncOptions;
         ipc: IpcPipe<any>;
         data: T;
-        constructor(name: string, defaultObject?: T, options?: IMemShareOptions);
+        constructor(name: string, defaultObject?: T, options?: IMemSyncOptions);
         start(): Promise<void>;
         stop(): Promise<void>;
         patch(patch: UpdateQuery<T>): Promise<void>;
-        onceAsync<TKey extends keyof IMemShareEvents<T>>(event: TKey): Promise<Parameters<IMemShareEvents<T>[TKey]>[0]>;
+        onceAsync<TKey extends keyof IMemSyncEvents<T>>(event: TKey): Promise<Parameters<IMemSyncEvents<T>[TKey]>[0]>;
+        hasPeers(path?: string): Promise<unknown>;
         observe(property: string, cb: (val: any) => void): this;
         getStatus(): any;
         setOptions(opts?: {
@@ -39,15 +40,15 @@ declare module 'memshare/MemShare' {
     export {};
 }
 
-declare module 'memshare/interface/IPipeType' {
+declare module 'memsync/interface/IPipeType' {
     export type IPipeType = 'host' | 'client';
 }
 
-declare module 'memshare/IpcPipe' {
+declare module 'memsync/IpcPipe' {
     import { class_EventEmitter } from 'atma-utils';
-    import { IPipeType } from 'memshare/interface/IPipeType';
-    import { IPatch, SharedObject } from 'memshare/SharedObject';
-    import { UpdateQuery } from 'memshare/util/types';
+    import { IPipeType } from 'memsync/interface/IPipeType';
+    import { IPatch, SharedObject } from 'memsync/SharedObject';
+    import { UpdateQuery } from 'memsync/util/types';
     export interface IpcPipeEvents<T> {
         starting(type: IPipeType): any;
         startingFailed(type: IPipeType, error?: any): any;
@@ -64,7 +65,7 @@ declare module 'memshare/IpcPipe' {
         name: string;
         options?: IpcPipeOptions;
         startedAt: Date;
-        status: 'none' | 'start-host' | 'start-client' | 'host' | 'client';
+        status: 'none' | 'start-host' | 'start-client' | 'host' | 'client' | 'stopped';
         connection: 'none' | 'connected';
         shared: SharedObject<T>;
         constructor(name: string, defaultObject: any, options?: IpcPipeOptions);
@@ -72,12 +73,13 @@ declare module 'memshare/IpcPipe' {
         stop(): Promise<void>;
         patch(update: UpdateQuery<T>): Promise<void>;
         getStatus(): any;
+        hasPeers(path: string): Promise<unknown>;
         emit<TKey extends keyof IpcPipeEvents<T>>(event: TKey, ...args: Parameters<IpcPipeEvents<T>[TKey]>): this;
     }
 }
 
-declare module 'memshare/SharedObject' {
-    import { UpdateQuery } from 'memshare/util/types';
+declare module 'memsync/SharedObject' {
+    import { UpdateQuery } from 'memsync/util/types';
     export class SharedObject<T = any> {
         version: number;
         timestamp: number;
@@ -107,7 +109,7 @@ declare module 'memshare/SharedObject' {
     }
 }
 
-declare module 'memshare/util/types' {
+declare module 'memsync/util/types' {
     /** https://docs.mongodb.com/manual/reference/operator/update */
     export type UpdateQuery<TSchema> = {
             /** https://docs.mongodb.com/manual/reference/operator/update-field/ */

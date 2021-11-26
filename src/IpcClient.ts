@@ -25,7 +25,7 @@ export class IpcClient extends class_EventEmitter<IIpcSocketEvents> {
 
     constructor (public pipeName: string, public clientId: number, public clientOptions?: IClientOptions) {
         super();
-        this.channelName = `memshare_${pipeName}`;
+        this.channelName = `memsync_${pipeName}`;
     }
 
 

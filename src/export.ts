@@ -1,1 +1,1 @@
-export { MemShare } from './MemShare'
+export { MemSync } from './MemSync'
