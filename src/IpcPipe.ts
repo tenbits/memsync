@@ -10,6 +10,7 @@ import * as ipc from 'node-ipc';
 import * as net from 'net';
 import { RpcObject } from './mem/RpcObject';
 import { IMessageDto, Message } from './model/Message';
+import { MemErrors } from './model/MemErrors';
 
 export interface IpcPipeEvents <T> {
     starting (type: IPipeType)
@@ -157,6 +158,10 @@ export class IpcPipe<TModel = any, TRpc = any> extends class_EventEmitter<IpcPip
             this.emit('startingFailed', type, error.message);
             this.status = 'none';
             this.connection = 'none';
+
+            if (error.code === MemErrors.ERR_MAX_WRITERS) {
+                throw error;
+            }
 
             if (!this.options?.clientOnly && !this.options?.serverOnly) {
                 // toggle

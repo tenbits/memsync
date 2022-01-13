@@ -9,6 +9,7 @@ import { IMessageDto, Message } from './model/Message';
 import { $id } from './util/$id';
 import { THandshackeMessageReq, THandshackeMessageRes } from './interface/THandshackeMessage';
 import { type ChannelClient } from './ChannelClient';
+import { $message } from './util/$message';
 
 
 interface IClientOptions {
@@ -145,7 +146,7 @@ export class NetClient extends class_EventEmitter<IIpcSocketEvents> {
                         this.isConnected = true;
                         let result = await this.client.handshake();
                         if (result.error) {
-                            reject(new Error(result.error.toString()));
+                            reject($message.toError(result));
                             return;
                         }
                         resolve(result);
@@ -219,7 +220,7 @@ class ClientSelfWrapper {
     }
 
     emit (message: IMessageDto) {
-        this.netClient.channel.log(`MemClient | Emit message ${Message.getLogName(message)}`);
+        this.netClient.channel.log(`MemClient | Emit message ${$message.getLogName(message)}`);
         this.socketClient.emit('message', message);
     }
     send<TResult> (message: IMessageDto): Promise<IMessageDto<any, TResult>> {
@@ -242,7 +243,7 @@ class ClientSelfWrapper {
         return m.promise as any as Promise<IMessageDto>;
     }
     async received (message: IMessageDto) {
-        this.netClient.channel.log(`MemClient | Received message ${Message.getLogName(message)}`);
+        this.netClient.channel.log(`MemClient | Received message ${$message.getLogName(message)}`);
         let sent = this.sent.get(message.id);
         if (sent) {
             this.sent.delete(message.id);
@@ -272,14 +273,14 @@ class ClientSelfWrapper {
         let m = {
             ...message,
             status: EIpcMessageStatus.Completed,
-            error: new Error(`Unknown message type: ${Message.getLogName(message)}`)
+            error: new Error(`Unknown message type: ${$message.getLogName(message)}`)
         };
         this.emit(m);
     }
     disconnected () {
         this.sent.forEach(entry => {
             if (entry.promise.isBusy()) {
-                let meta = Message.getLogName(entry.message);
+                let meta = $message.getLogName(entry.message);
                 entry.promise.reject(new Error(`${meta} errored as the client was disconnected. `));
             }
         });

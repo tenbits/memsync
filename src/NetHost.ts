@@ -11,6 +11,8 @@ import { THandshackeMessageReq, THandshackeMessageRes } from './interface/THands
 import { IpcPipeOptions } from './IpcPipe';
 import { ChannelHost } from './ChannelHost';
 import { $id } from './util/$id';
+import { $message } from './util/$message';
+import { MemErrors } from './model/MemErrors';
 
 export interface IIpcSocketEvents {
     handshake ()
@@ -59,7 +61,7 @@ export class NetHost extends class_EventEmitter<IIpcSocketEvents> {
         (ipc.server as any).broadcast(event, data);
     }
     sendTo(socket, event: 'message' | string, message: IMessageDto) {
-        this.channel.log(`MemServer | Send to socket: ${event}. ${Message.getLogName(message)}`);
+        this.channel.log(`MemServer | Send to socket: ${event}. ${$message.getLogName(message)}`);
         ipc.server.emit(socket, event, message);
     }
 
@@ -130,6 +132,7 @@ export class NetHost extends class_EventEmitter<IIpcSocketEvents> {
                             this.sendTo(socket, 'message', {
                                 id: message.id,
                                 error: res.error?.toString(),
+                                code: res.code,
                                 result: res.result,
                             });
                         })
@@ -140,6 +143,7 @@ export class NetHost extends class_EventEmitter<IIpcSocketEvents> {
                             this.sendTo(socket, 'message', {
                                 id: message.id,
                                 error: error?.toString(),
+                                code: error.code,
                             });
                         });
                     //
@@ -198,7 +202,7 @@ export class NetHost extends class_EventEmitter<IIpcSocketEvents> {
     }
 
     private async handleIncomeMessage (message: IMessageDto, socket) {
-        this.channel.log(`MemServer | Received message ${Message.getLogName(message)}`);
+        this.channel.log(`MemServer | Received message ${$message.getLogName(message)}`);
 
         switch (message.type) {
             case EIpcMessageType.Rpc:
@@ -242,7 +246,8 @@ export class NetHost extends class_EventEmitter<IIpcSocketEvents> {
                 if (maxWriters >= writersCount) {
                     return {
                         ...message,
-                        error: new Error(`Exceeded max writers`)
+                        error: new Error(`Exceeded max writers`),
+                        code: MemErrors.ERR_MAX_WRITERS
                     };
                 }
             }

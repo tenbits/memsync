@@ -178,3 +178,6 @@ export class MemSync<
         }
     }
 }
+
+
+export { MemErrors } from './model/MemErrors'

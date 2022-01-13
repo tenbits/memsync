@@ -1,1 +1,1 @@
-export { MemSync } from './MemSync'
+export { MemSync, MemErrors } from './MemSync'

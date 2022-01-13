@@ -9,6 +9,7 @@ export interface IMessageDto<TIn = any, TOut = any> {
     params?: TIn
     result?: TOut | null
     error?: Error | string | null
+    code?: string
 }
 
 export class Message<TOut = any, TIn = any[]> extends Serializable<Message<TOut, TIn>> implements IMessageDto<TIn, TOut> {
@@ -39,16 +40,6 @@ export class Message<TOut = any, TIn = any[]> extends Serializable<Message<TOut,
     }
     doComplete (error, result) {
         this._lifecycle.doComplete(error, result);
-    }
-
-
-    static getLogName (message: IMessageDto) {
-        let key = '';
-        if (message.type === EIpcMessageType.Rpc) {
-            key = `:${message.params?.path}`;
-        }
-        let name = `${message.type}(${message.id}${key})`;
-        return name;
     }
 }
 

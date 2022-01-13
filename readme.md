@@ -7,24 +7,29 @@
 ----
 [![Build Status](https://travis-ci.com/tenbits/memsync.svg?branch=master)](https://travis-ci.com/tenbits/memsync)
 [![NPM version](https://badge.fury.io/js/memsync.svg)](http://badge.fury.io/js/memsync)
+![ts](https://badgen.net/badge/icon/typescript?icon=typescript&label)
+
+Process-to-process communication and object synchronization. Backed by [`node-ipc`](https://github.com/RIAEvangelist/node-ipc).
+
+* ⚙️ Multiple NodeJS processes can write to and read from the **shared** object.
+* 🤝 Multiple NodeJS processes can communicate via **RPC** calls or **EventBus**.
+* ✨ No extra server host process is needed, each process acts as a host or client, when the host process exits, the host role is taken over by another process.
+* 🛡️ Enhanced concurrency control
+
+----
+
+##### &#9776;
+
+- `1` Overview
+    - `1.1` [Object initialization](#overview-object)
 
 
-Process-to-process object synchronization. Backed by [`node-ipc`](https://github.com/RIAEvangelist/node-ipc).
-
-* Multiple NodeJS processes can write to and read from the shared object.
-* No extra server host process is needed, every process can act as a host, when the host process exits, the host role is taken over by another process.
-* Remote Procedure Calls
-* Custom Events
-* Object Observers
-
-## API
-
-
-### Instantiate the memsync object
+### Object initialization <a id='overview-object'>§</a>
 
 ```ts
 import { MemSync } from 'memsync'
 let memsync = new MemSync({
+    /* some unique/global name */
     name: 'my_shared_object',
     data: {
         foo: 1,
@@ -107,7 +112,7 @@ memsync.stop()
 ```
 
 
-### Observe
+### Observe property change
 
 Observe the objects properties
 ```ts
@@ -116,8 +121,34 @@ memsync.observe('foo', (fooValue) => {
 })
 ```
 
+
+### RPC
+
+```ts
+// process #1
+let memsync = new MemSync({
+    name: 'foo',
+    rpc: {
+        getFoo () { return 'bar'; }
+    }
+);
+memsync.start();
+```
+
+```ts
+// process #2
+let memsync = new MemSync({
+    name: 'foo',
+});
+await memsync.start();
+
+let str = await memsync.call('getFoo');
+// str === 'bar'
+
+```
+
 ### Server
-The process may expose a server to query the object and it current state
+The process may expose a server to query the object and its current state
 
 ```js
 let memory = new MemSync('foo-bar', { num: 0 }, {
