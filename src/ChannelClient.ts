@@ -1,20 +1,33 @@
 import { Channel } from './Channel';
 import { IPatchMessageDto } from './interface/IPatchMessageDto';
-import { IpcClient } from './IpcClient';
-import { IpcPipeOptions } from './IpcPipe';
-import { IPatch, SharedObject } from './SharedObject';
+import { NetClient } from './NetClient';
+import { IpcPipe, IpcPipeOptions } from './IpcPipe';
+import { Message } from './model/Message';
+import { IPatch, SharedObject } from './mem/SharedObject';
+import { RpcObject } from './mem/RpcObject';
 
 
-export class ChannelClient<T> extends Channel<T> {
+export class ChannelClient<T = any> extends Channel<T> {
 
     name = 'client'
 
-    private client = new IpcClient(this.pipeName, this.id, this.options);
+    private client: NetClient = new NetClient(this.pipeName, this, this.options);
+
+
+    constructor (public pipeName: string, public shared: SharedObject<T>, public rpc: RpcObject, public options: IpcPipeOptions, ipc: IpcPipe) {
+        super(shared, rpc, options);
+
+        this.client.on('disconnect', (...args) => {
+            this.emit('disconnect');
+        })
+    }
+
 
 
     async send(patches: IPatch<any>[]): Promise<any> {
-        let { prevPatches, netVersion} = await this.client.callRpc<{ prevPatches, netVersion }>('patch', <IPatchMessageDto> {
-            senderId: this.id,
+
+        let  { result: { prevPatches, netVersion } } = await this.client.callRpc<{ prevPatches, netVersion }>('host.patch', <IPatchMessageDto> {
+            senderId: this.channelId,
             netVersion: this.netVersion,
             patches: patches,
         });
@@ -28,13 +41,6 @@ export class ChannelClient<T> extends Channel<T> {
         }
     }
 
-    constructor (public pipeName: string, public shared: SharedObject, public options: IpcPipeOptions) {
-        super(shared);
-
-        this.client.on('disconnect', (...args) => this.emit('disconnect'))
-    }
-
-
     async open () {
         await this.client.connect();
         await this.onJoined();
@@ -42,11 +48,21 @@ export class ChannelClient<T> extends Channel<T> {
     async close () {
         await this.client.stop();
     }
-
     async getStatus () {
-        let status = await this.client.callRpc('getStatus');
+        let { result: status } = await this.client.callRpc('host.getStatus');
         return status;
     }
+    async ping () {
+        return this.client.ping();
+    }
+    async call (path: string, args: any[]): Promise<any> {
+        return this.client.callRpc(path, args);
+    }
+
+    sendMessage(message: Message): void {
+        this.client.sendMessage(message);
+    }
+
 
     async onServerCreated () {
 
@@ -54,16 +70,8 @@ export class ChannelClient<T> extends Channel<T> {
 
     private async onJoined () {
 
-        let remote = await this.client.callRpc<{ version, timestamp, data }>('sync', this.shared.toJson());
-        if (remote == null) {
-            return;
-        }
-
-        if (remote.timestamp > this.shared.timestamp) {
-            this.shared.setData(remote.data, remote.timestamp, remote.version);
-        }
         this.client.on('onPatchMessage', message => {
-            if (message.senderId === this.id) {
+            if (message.senderId === this.channelId) {
                 return;
             }
             message.patches?.forEach(patch => {
@@ -72,6 +80,11 @@ export class ChannelClient<T> extends Channel<T> {
             this.netVersion = message.netVersion;
             this.shared.timestamp = message.timestamp;
             this.emit('receivedPatches', message.patches);
+        });
+
+        this.client.on('onRpcMessage', message => {
+
+
         });
     }
 }

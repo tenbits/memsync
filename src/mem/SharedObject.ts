@@ -1,19 +1,24 @@
-import { obj_getProperty } from 'atma-utils';
-import { timeStamp } from 'console';
-import { obj_patch, obj_patchKeys } from './util/patch';
-import { UpdateQuery } from './util/types';
+import { class_EventEmitter, obj_getProperty } from 'atma-utils';
+import { obj_patch, obj_patchKeys } from '../util/patch';
+import { UpdateQuery } from '../util/types';
+import { type IpcPipe } from '../IpcPipe';
+import { RpcWrapper } from '../util/RpcWrapper';
 
-export class SharedObject<T = any> {
+interface ISharedObjectEvents {
+    change ()
+}
+export class SharedObject<T> extends class_EventEmitter<ISharedObjectEvents>{
     version: number = 1
     timestamp: number = 0
 
-    data: T
+    readonly data: T
     patches: IPatch<T>[] = [];
     observers: {
         [path: string]: Function[]
     } = {};
 
     constructor (defaultObject: any = {}) {
+        super();
         this.data = defaultObject ?? {};
     }
 
@@ -47,8 +52,17 @@ export class SharedObject<T = any> {
                 }
             }
         }
-
+        this.emit('change');
         return patch;
+    }
+
+    /** returns current as json if  current is newer */
+    fullSync (obj: { version, timestamp, data }) {
+        if (this.version > obj.version) {
+            return this.toJson();
+        }
+        this.setData(obj.data, obj.timestamp, obj.version);
+        return null;
     }
 
     observe (path: string, cb) {
@@ -77,8 +91,8 @@ export class SharedObject<T = any> {
                 delete this.data[key];
             }
         }
-        this.version = version;
-        this.timestamp = timestamp;
+        this.version = version ?? this.version;
+        this.timestamp = timestamp ?? this.timestamp;
     }
 }
 

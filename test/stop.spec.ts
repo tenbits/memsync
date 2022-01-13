@@ -18,13 +18,12 @@ UTest({
             }
         });
 
-        let hasPeers = await reader.hasPeers(`/tmp/app.memsync_stoppable`);
-
+        let hasPeers = await reader.hasPeers();
         eq_(hasPeers, true);
 
         await reader.stop();
 
-        hasPeers = await reader.hasPeers(`/tmp/app.memsync_stoppable`);
+        hasPeers = await reader.hasPeers();
         eq_(hasPeers, false);
     },
     async 'ensure we stop server and and client' () {
@@ -48,7 +47,7 @@ UTest({
         await incProc.terminate();
         await wait(1000);
 
-        let hasPeersAfter = await reader.hasPeers(`/tmp/app.memsync_inc`);
+        let hasPeersAfter = await reader.hasPeers();
         eq_(hasPeersAfter, false);
     }
 

@@ -29,11 +29,16 @@ UTest({
             }
         });
 
+        let p1 = await reader.ping();
+        eq_(p1.connection, 'client');
         await incProc.terminate();
 
-        '> host was terminated, make current object to host'
 
-        await wait(500);
+        let p2 = await reader.ping();
+        eq_(p2.connection, 'host');
+
+
+        '> host was terminated, make current object to host'
         status = await reader.getStatus();
         has_(status, {
             status: 'host',
@@ -45,7 +50,7 @@ UTest({
         await reader.stop();
         await wait(500);
 
-        let hasPeers = await reader.hasPeers(`/tmp/app.memsync_inc`);
+        let hasPeers = await reader.hasPeers();
         eq_(hasPeers, false);
     }
 });

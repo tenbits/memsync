@@ -1,5 +1,5 @@
 import { ServerResponse, IncomingMessage } from 'http';
-import { SharedObject } from '../SharedObject';
+import { SharedObject } from '../mem/SharedObject';
 
 export class Middleware {
 

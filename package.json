@@ -1,7 +1,7 @@
 {
     "name": "memsync",
     "description": "Cross-process object/memory synchronization",
-    "version": "0.5.13",
+    "version": "0.5.15",
     "author": {
         "name": "Alex Kit",
         "email": "alex.kit@atmajs.com"
@@ -17,8 +17,10 @@
         "url": "https://github.com/tenbits/memsync"
     },
     "dependencies": {
-        "alot": "^0.2.83",
-        "atma-utils": "^0.1.38",
+        "alot": "^0.2.96",
+        "atma-io": "^1.2.44",
+        "atma-utils": "^0.2.57",
+        "class-json": "^0.3.7",
         "memd": "^0.2.90",
         "node-ipc": "^9.2.1"
     },
@@ -59,6 +61,8 @@
         },
         "dynamicDependencies": [
             "atma-io",
+            "alot",
+            "memd",
             "atma-utils",
             "^path$",
             "child_process",

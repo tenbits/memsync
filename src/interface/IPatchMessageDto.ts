@@ -1,14 +1,20 @@
-import { IPatch } from '../SharedObject';
+import { IPatch } from '../mem/SharedObject';
 
 export interface IPatchMessageDto {
-    senderId: number
+    senderId: string
     netVersion: number
     timestamp: number
     patches: IPatch<any>[]
 }
 
+export interface IRpcMessageDto {
+    senderId: string
+    path: string
+    args: any[]
+}
+
 export interface ISyncMessageDto {
-    senderId: number
+    senderId: string
     version: number
     timestamp: number
     data: any

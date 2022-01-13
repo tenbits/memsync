@@ -1,5 +1,5 @@
 import * as http from 'http'
-import { SharedObject } from '../SharedObject';
+import { SharedObject } from '../mem/SharedObject';
 import { Middleware } from './Middleware';
 
 const servers: { [port: string]: Server} = {};
