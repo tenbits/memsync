@@ -20,11 +20,21 @@ Process-to-process communication and object synchronization. Backed by [`node-ip
 
 ##### &#9776;
 
-- `1` Overview
-    - `1.1` [Object initialization](#overview-object)
+- `1` [Initialization](#init)
+- `2` [Object changes](#change)
+- `3` [Race conditions and conflict resolutions](#race-conditions)
+- `4` [RPC](#rpc)
+- `5` [Events](#events)
+- `6` [Object Observer](#observer)
+- `7` [Mutex](#mutex)
+- `8` [Storage](#storage)
+- `9` [Server](#server)
+- `10` [Stop](#stop)
 
 
-### Object initialization <a id='overview-object'>§</a>
+### `1` Initialization  <a id='init'>§</a>
+
+> MemSync sample initialization
 
 ```ts
 import { MemSync } from 'memsync'
@@ -60,7 +70,6 @@ let memsync = new MemSync({
         timeout: 30_000
     }
 );
-
 await memsync.start();
 ```
 
@@ -69,9 +78,9 @@ await memsync.start();
 2. When the process-to-process network does not exists, we create a server and start accepting new processes to join and will later share the current data with the clients
 
 
-### Make changes
+### `2` Object changes <a id='change'>§</a>
 
-We support partially the `mongodb` [update operators](https://docs.mongodb.com/manual/reference/operator/update/)
+To read values you would use it as simple object `let foo = memsync.data.foo`, but for changes use  `mongodb` [update operators](https://docs.mongodb.com/manual/reference/operator/update/)
 
 ```ts
 await memsync.patch({
@@ -85,44 +94,13 @@ We apply the patch immediately the object, and will try to
 1. if client: send to the host, which will accept the patch to itself, and broadcast the patch to other nodes.
 2. if server: broadcast the patch to nodes, if any.
 
-##### Race conditions and conflict resolutions
+### `3` Race conditions and conflict resolutions <a id='race-conditions'>§</a>
 
 1. When multiple processes modify different parts of the object - there is no conflicts and the patch order has no matter.
 2. When multiple patches for the same data are made - the host acts as the source of truth - it accepts the patches by timestamp (_patch creation date by client_),  if for any reason a patch is delivered to the host with older timestamp, as already was applied, it will be rejected and the sender (the client) will be notified about current state and current patches.
 
-### Storage
 
-You can load/save objects to the fs. We use [`atma-io`](https://github.com/atmajs/atma-io) for this, and so you can use not just `file://` protocol, but any other load `atma-io` supports, for example [`atma-io-transport-s3`](https://github.com/atmajs/atma-io-transport-s3) to load from any `S3` compatible storage.
-```ts
-let mem = new MemSync('storage', { num: 0 }, {
-    file: {
-        path: 's3://my/storage.json'
-    }
-});
-```
-
-### Stop
-
-You can stop the node anytime
-1. if it is a client, it just disconnects
-2. if it is a server, it also stops listening, and one of alive nodes (if any) will act then as a server
-
-```ts
-memsync.stop()
-```
-
-
-### Observe property change
-
-Observe the objects properties
-```ts
-memsync.observe('foo', (fooValue) => {
-    console.log(`FooValue changed`, fooValue);
-})
-```
-
-
-### RPC
+### `4` RPC <a id='rpc'>§</a>
 
 ```ts
 // process #1
@@ -132,7 +110,7 @@ let memsync = new MemSync({
         getFoo () { return 'bar'; }
     }
 );
-memsync.start();
+await memsync.start();
 ```
 
 ```ts
@@ -144,10 +122,90 @@ await memsync.start();
 
 let str = await memsync.call('getFoo');
 // str === 'bar'
+```
+
+### `5` [Events](#events)
+
+Each process can emit and listen to events
+
+```ts
+// process #1
+memsync.events.emit('foo', 123);
+
+// process #2
+memsync.events.on('foo', num => {
+    console.log('Lorem', 123);
+})
+```
+
+### `6` Object Observer <a id='observer'>§</a>
+
+Observe the objects properties
+```ts
+memsync.observe('foo', (fooValue) => {
+    console.log(`FooValue changed`, fooValue);
+})
+```
+
+### `7` Mutex <a id='mutex'>§</a>
+
+By using `writer` role and specifying a `maxWriters` property to `1` for the instance, you make sure there is only one worker at a time.
+
+
+```ts
+// process #1
+import { MemSync } from 'memsync'
+let memsync = new MemSync({
+    name: 'foo',
+    options: {
+        peer: {
+            roles: ['writer']
+        }
+        network: {
+            maxWriters: 1
+        }
+    }
+});
+await memsync.start();
+
+// process #2
+import { MemSync, MemErrors } from 'memsync'
+
+let memsync = new MemSync({
+    name: 'foo',
+    options: {
+        peer: {
+            roles: ['writer']
+        }
+        network: {
+            maxWriters: 1
+        }
+    }
+});
+try {
+    await  memsync.start();
+} catch (error) {
+    error.code === MemErrors.ERR_MAX_WRITERS
+}
+
 
 ```
 
-### Server
+### `8` Storage <a id='storage'>§</a>
+
+You can load/save objects to the fs. We use [`atma-io`](https://github.com/atmajs/atma-io) for this, and so you can use not just `file://` protocol, but any other load `atma-io` supports, for example [`atma-io-transport-s3`](https://github.com/atmajs/atma-io-transport-s3) to load from any `S3` compatible storage.
+```ts
+let mem = new MemSync('storage', { num: 0 }, {
+    file: {
+        path: 's3://my/storage.json'
+    }
+});
+```
+
+
+
+### `9` Server <a id='server'>§</a>
+
 The process may expose a server to query the object and its current state
 
 ```js
@@ -163,8 +221,20 @@ You can query the state of the `foo-bar` object from extern
 ```sh
 curl http://localhost:8883/foo-bar
 
-//e.g.> `{ num: 1}`
+//e.g.> `{ num: 1 }`
 ```
+
+
+### `stop` Stop <a id='stop'>§</a>
+
+You can stop the node anytime
+1. if it is a client, it just disconnects
+2. if it is a server, it also stops listening, and one of alive nodes (if any) will act then as a server
+
+```ts
+memsync.stop()
+```
+
 
 
 ----
