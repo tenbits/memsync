@@ -27,7 +27,7 @@
     "devDependencies": {
         "@types/node": "^12.6.2",
         "@types/node-ipc": "^9.2.0",
-        "app-bundler": "0.0.70",
+        "app-bundler": "^0.1.2",
         "atma": "^0.12.33",
         "atma-loader-ts": "^1.1.16",
         "axios": "^0.24.0",

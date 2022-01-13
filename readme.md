@@ -5,7 +5,7 @@
 </p>
 
 ----
-[![Build Status](https://travis-ci.com/tenbits/memsync.svg?branch=master)](https://travis-ci.com/tenbits/memsync)
+[![Build Status](https://app.travis-ci.com/tenbits/memsync.svg?branch=master)](https://app.travis-ci.com/github/tenbits/memsync)
 [![NPM version](https://badge.fury.io/js/memsync.svg)](http://badge.fury.io/js/memsync)
 ![ts](https://badgen.net/badge/icon/typescript?icon=typescript&label)
 
